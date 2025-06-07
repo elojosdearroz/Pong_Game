@@ -1,5 +1,3 @@
-# controlador.py
-
 import turtle
 import winsound
 import threading
@@ -47,6 +45,14 @@ class ControladorJuego:
         self.ball.dy += 1 if self.ball.dy > 0 else -1
 
     def iniciar(self):
+        if hasattr(self.controlador_paddles, "iniciar"):
+            threading.Thread(target=self.controlador_paddles.iniciar, daemon=True).start()
+
+        if hasattr(self.controlador_paddles, "jugador_conectado" ):
+            while not self.controlador_paddles.jugador_conectado:
+                time.sleep(1)
+                print("esperando jugador....")
+    
         threading.Thread(target=self._cronometro, daemon=True).start()
         self._game_loop()
 

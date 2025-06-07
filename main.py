@@ -1,10 +1,11 @@
-# main.py
-import threading
 import turtle
 from ui.interfaz import InterfazPong
 from ui.controlador import ControladorJuego
 from modos.offline import PongOffline
 from modos.ai import PongAi
+from modos.online.online_servidor import TCP_Server
+from modos.online.online_cliente import TCP_Client
+import threading
 
 keys = {"w": False, "s": False, "Up": False, "Down": False}
 
@@ -49,7 +50,29 @@ def modo_ai():
 
 
 def modo_online():
-    print("Modo online no implementado aun.")
+    interfaz = InterfazPong()
+    interfaz.mostrar_menuOnline({
+        "server": modo_onlineHost,
+        "client": modo_onlineClient
+    })
+
+def modo_onlineHost():
+    paddle_a = crear_paddle(-350)
+    paddle_b = crear_paddle(350)
+    ball = crear_pelota()
+    s = TCP_Server("0.0.0.0", 5030, ball, paddle_a, paddle_b, keys)
+    s.setup_keys(wn)
+    juego = ControladorJuego(wn, paddle_a, paddle_b, ball, s)
+    juego.iniciar()
+
+def modo_onlineClient():
+    paddle_a = crear_paddle(-350)
+    paddle_b = crear_paddle(350)
+    ball = crear_pelota()
+    c = TCP_Client("0.0.0.0", 5030, ball, paddle_a, paddle_b, keys)
+    c.setup_keys(wn)
+    juego = ControladorJuego(wn, paddle_a, paddle_b, ball, c)
+    juego.iniciar()
 
 # Crear pantalla
 wn = turtle.Screen()
@@ -58,12 +81,12 @@ wn.bgcolor("black")
 wn.setup(width=800, height=600)
 wn.tracer(0)
 
-# Lanzar menú principal
+# Lanzar menu principal
 interfaz = InterfazPong()
 interfaz.wn = wn
 interfaz.mostrar_menu({
     "offline": modo_offline,
     "ai": modo_ai,
-    "online": modo_online
+    "online": modo_online,
 })
 interfaz.iniciar_loop()
